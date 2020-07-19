@@ -1,0 +1,21 @@
+<!--index.wxml-->
+
+<view class='login_block' hidden='{{ login }}'>
+  <view>密码：<input type='text' placeholder="请输入通行密码" bindinput='inputPwd'></input></view>
+  <button type='primary' bindtap='confirmPwd'>确定</button>
+</view>
+
+<view hidden='{{ !login }}'>
+
+  <view class='button' bindtap='command_opendoor' hover-class='button_hover' hover-stay-time='2000'>
+    <image src='{{ img_url }}' mode='scaleToFill' class='button_img'></image>
+    <text style='padding-top: 3vh; '>Open The Door</text>
+  </view>
+
+  <view class='status'>
+    <view style='width:5vw;height:5vw;margin:auto 2vw;background-color:{{iot_connect?"green":"red"}}'></view>
+    <view>{{ connect_text }}</view>
+  </view>
+
+</view>
+
