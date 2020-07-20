@@ -1,21 +1,13 @@
 <!--index.wxml-->
-
-<view class='login_block' hidden='{{ login }}'>
-  <view>密码：<input type='text' placeholder="请输入通行密码" bindinput='inputPwd'></input></view>
-  <button type='primary' bindtap='confirmPwd'>确定</button>
-</view>
-
-<view hidden='{{ !login }}'>
-
-  <view class='button' bindtap='command_opendoor' hover-class='button_hover' hover-stay-time='2000'>
-    <image src='{{ img_url }}' mode='scaleToFill' class='button_img'></image>
-    <text style='padding-top: 3vh; '>Open The Door</text>
-  </view>
-
-  <view class='status'>
-    <view style='width:5vw;height:5vw;margin:auto 2vw;background-color:{{iot_connect?"green":"red"}}'></view>
-    <view>{{ connect_text }}</view>
-  </view>
-
-</view>
-
+ <!--
+ bindtap="checkIsFingerPrint">检测是否可以指纹识别
+  bindtap="checkIsFacial">检测是否可以人脸识别
+  bindtap="HaveFingerPrint">该设备是否录入指纹
+  bindtap="FingerPrint">识别指纹
+  -->
+<head>
+        <!-- 通过链接的方式使用 CSS -->
+        <script src="index.js" charset="utf-8"></script>
+</head>
+<button type="defaule" bindtap="checkIsFingerPrint">检测能否指纹识别</button>
+<button type="defaule" bindtap="FingerPrint">指纹识别认证</button>
