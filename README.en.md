@@ -1,7 +1,7 @@
 # IOT-wechat
 
 #### Description
-微信小程序远程控制宿舍远程开门项目。使用微信小程序WXS连接阿里云物联网，通过nodemcu控制舵机旋转带动宿舍门实现开门功能
+微信小程序远程控制宿舍远程开门项目。使用微信小程序WXS连接阿里云物联网，通过nodemcu控制继电器接通模拟按键输入实现开门功能
 
 #### Software Architecture
 Software architecture description
