@@ -60,7 +60,7 @@ Page({
   FingerPrint: function () {
     wx.startSoterAuthentication({
       requestAuthModes: ['fingerPrint'],
-      challenge: '123456',
+      challenge: '20220311',
       authContent: '请用指纹',
       success(res) {
 
@@ -77,6 +77,27 @@ Page({
     })
 
 
+  },
+
+  //人脸
+  Facial: function () {
+    wx.startSoterAuthentication({
+      requestAuthModes: ['facial'],
+      challenge: '20220311',
+      authContent: '请用指纹',
+      success(res) {
+
+        wx.navigateTo({//保留当前页面，跳转到应用内的某个页面
+          url: '../door/index',//url里面就写上你要跳到的地址
+        })
+        console.log("识别成功", res)
+        show("提示", "识别成功", false);
+      },
+      fail(res) {
+        console.log("识别失败", res)
+        show("提示", "识别失败", false);
+      }
+    })
   },
   ceshi: function (options) {
     //只是测试一下能不能跳转

@@ -1,0 +1,19 @@
+<!--index.wxml-->
+
+    <view class="flex-wrp" style="flex-direction:column;">
+      <view class='button' bindtap='command_open' hover-class='button_hover' hover-stay-time='2000' style="position: absolute; left: 17rpx; top: 536rpx">
+        <image src='{{ img_url }}' mode='scaleToFill' class='button_img'></image>
+        <text style='padding-top: 3vh; '>热水器开</text>
+      </view>
+      <view class='button' bindtap='command_close' hover-class='button_hover' hover-stay-time='2000' style="position: absolute; left: 20rpx; top: -543rpx">
+        <image src='{{ img_url }}' mode='scaleToFill' class='button_img'></image>
+        <text style='padding-top: 3vh; '>热水器关</text>
+      </view>
+
+  <view class='status'>
+    <view style='width:5vw;height:5vw;margin:auto 2vw;background-color:{{iot_connect?"green":"red"}}'></view>
+    <view>{{ connect_text }}</view>
+  </view>
+
+</view>
+

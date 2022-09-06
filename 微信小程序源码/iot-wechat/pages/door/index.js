@@ -1,7 +1,9 @@
 var mqtt = require('../../utils/mqtt.min.js')
 const crypto = require('../../utils/hex_hmac_sha1.js')
+var util = require('../../utils/util.js');
 var client;
 
+const app = getApp()
 /*
 项目说明：
 此源码博客地址：https://blog.csdn.net/Koevas/article/details/103684222
@@ -13,13 +15,18 @@ var client;
 
 Page({
   data: {
+    uid: '400d9c25791748d39b73e0085299921b',
+    topic: "washing006",
     img_url: "/img/door_a.png",
     password_input:"",
-    key:"123456",
+    key:"20220311",
     login: false,
+    login2: false,
     button_clicking: false,
     iot_connect: false,
     connect_text: "未连接",
+    nickName:"",
+    powerstatus:"测试"
   },
 
   inputPwd:function(e){
@@ -62,82 +69,116 @@ Page({
           that.setData({
             login: true
           })
-          that.doConnect()
+          that.load()
         }
       }
     })
   },
 
+  login2:function(){
+    var that = this
+    wx.getUserProfile({
+      desc: '用于完善信息', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，请谨慎填写
+      success: (res) => {
+        this.setData({
+          userInfo: res.userInfo,
+          hasUserInfo: true,
+          login2:true
+        })
+        wx.request({
+          url: 'https://api.bemfa.com/api/device/v1/data/1/', //api接口，详见接入文档
+          method:"POST",
+          data: {
+            uid: that.data.uid,
+            topic: "status",
+            msg:that.data.userInfo.nickName
+          },
+          header: {
+            'content-type': "application/x-www-form-urlencoded"
+          }})
+        that.load()
+      }
+    })
+    
+  },
+
   onLoad: function () {
     this.login()
+    this.login2()
   },
-  doConnect() {
-    var that = this;
-    // 下面的信息要换成自己的阿里云三元组
-    const deviceConfig = {
-      productKey: "a1UlGaNaaa",
-      deviceName: "Door_Console",
-      deviceSecret: "YD0Oz4kO2PqdVLtqQ8unhr6LAKraaaaa",
-      regionId: "cn-shanghai"
-    };
-    const options = this.initMqttOptions(deviceConfig);
-    console.log(options)
-    //替换productKey为你自己的产品的
-    client = mqtt.connect('wxs://a1UlGaNaaa.iot-as-mqtt.cn-shanghai.aliyuncs.com', options)
-    client.on('connect', function () {
-      that.setData({
-        connect_text: "连接服务器成功",
-        iot_connect: true
-      })
+  
+  command_open(){
+     //当点击打开按钮，更新开关状态为打开
+     var that = this
+     that.setData({
+       powerstatus:"开启"
+     })
+     var time = util.formatTime(new Date());
+     wx.reportAnalytics('enterpage', {
+      id: '',
+      time: time,
+      do: '开',
+    });
+         //控制接口
+         wx.request({
+          url: 'https://api.bemfa.com/api/device/v1/data/1/', //api接口，详见接入文档
+          method:"POST",
+          data: {  //请求字段，详见巴法云接入文档，http接口
+            uid: that.data.uid,
+            topic: that.data.topic,
+            msg:"on"   //发送消息为on的消息
+          },
+          header: {
+            'content-type': "application/x-www-form-urlencoded"
+          },
+          success (res) {
+            console.log(res.data)
+            wx.showToast({
+              title:'已发送打开信号',
+              icon:'success',
+              duration:1000
+            })
+          }
+        })
+        wx.exitMiniProgram({success: (res) => {}})
+  },
 
-      //订阅主题，替换productKey和deviceName(这里的主题可能会不一样，具体请查看后台设备Topic列表或使用自定义主题)
-      // client.subscribe('/a1UlGaNjWAO/Door_Console/user/message', function (err) {
-      //   if (!err) {
-      //     console.log('订阅成功！');
-      //   }
-      // })
+  command_close(){
+    //当点击关闭按钮，更新开关状态为关闭
+    var that = this
+    that.setData({
+      powerstatus:"关闭"
     })
-    //接收消息监听
-    client.on('message', function (topic, message) {
-      // message is Buffer
-      console.log('收到消息：' + message.toString())
-      //关闭连接 client.end()
-    })
-  },
-  //IoT平台mqtt连接参数初始化
-  initMqttOptions(deviceConfig) {
-
-    const params = {
-      productKey: deviceConfig.productKey,
-      deviceName: deviceConfig.deviceName,
-      timestamp: Date.now(),
-      clientId: Math.random().toString(36).substr(2),
-    }
-    //CONNECT参数
-    const options = {
-      keepalive: 60, //60s
-      clean: true, //cleanSession不保持持久会话
-      protocolVersion: 4 //MQTT v3.1.1
-    }
-    //1.生成clientId，username，password
-    options.password = this.signHmacSha1(params, deviceConfig.deviceSecret);
-    options.clientId = `${params.clientId}|securemode=2,signmethod=hmacsha1,timestamp=${params.timestamp}|`;
-    options.username = `${params.deviceName}&${params.productKey}`;
-
-    return options;
-  },
-
-  command_opendoor(){
-    if(!this.data.button_clicking && this.data.iot_connect){
-      this.button_style()
-      var connectText = '{ "method": "thing.service.DoorOpen"}'
-      client.publish('/a1UlGaNjWAO/Door_Console/user/message', connectText, function (err){
-        if (!err) {
-          console.log('开门指令发送成功！');
-        }
-      })
-    }
-  },
+    var time = util.formatTime(new Date());
+     wx.reportAnalytics('enterpage', {
+      id: '',
+      time: time,
+      do: '关',
+    });
+    
+        //控制接口
+        wx.request({
+          url: 'https://api.bemfa.com/api/device/v1/data/1/', //api接口，详见接入文档
+          method:"POST",
+          data: {
+            uid: that.data.uid,
+            topic: that.data.topic,
+            msg:"off"
+          },
+          header: {
+            'content-type': "application/x-www-form-urlencoded"
+          },
+          success (res) {
+            console.log(res.data)
+            wx.showToast({
+              title:'已发送关闭信号',
+              icon:'success',
+              duration:1000
+            })
+          }
+        })
+      wx.exitMiniProgram({success: (res) => {}})
+ },
 
   button_style(){
     var that = this
@@ -151,6 +192,126 @@ Page({
         button_clicking: false
       })
     }, 2000)
+  },
+
+  load () {
+    var that = this
+
+    //请求设备状态
+    //设备断开不会立即显示离线，由于网络情况的复杂性，离线1分钟左右才判断真离线
+    wx.request({
+      url: 'https://api.bemfa.com/api/device/v1/status/', //状态api接口，详见巴法云接入文档
+      data: {
+        uid: that.data.uid,
+        topic: that.data.topic,
+      },
+      header: {
+        'content-type': "application/x-www-form-urlencoded"
+      },
+      success (res) {
+        console.log(res.data)
+        if(res.data.status === "online"){
+          that.setData({
+            device_status:"在线",
+            connect_text: "连接服务器成功",
+            iot_connect: true
+          })
+        }else{
+          that.setData({
+            device_status:"离线",
+            connect_text: "设备掉线",
+            iot_connect: false
+          })
+        }
+        console.log(that.data.device_status)
+      }
+    })
+
+          //请求询问设备开关/状态
+          wx.request({
+            url: 'https://api.bemfa.com/api/device/v1/data/1/', //get接口，详见巴法云接入文档
+            data: {
+              uid: that.data.uid,
+              topic: that.data.topic,
+            },
+            header: {
+              'content-type': "application/x-www-form-urlencoded"
+            },
+            success (res) {
+              console.log(res.data)
+              if(res.data.msg === "on"){
+                that.setData({
+                  powerstatus:"状态：打开"
+                })
+              }
+              if(res.data.msg === "off"){
+                that.setData({
+                  powerstatus:"状态：关闭"
+                })
+              }
+              console.log(that.data.powerstatus)
+            }
+          })
+
+
+    //设置定时器，每五秒请求一下设备状态
+    setInterval(function () {
+      console.log("定时请求设备状态,默认10秒");
+      wx.request({
+        url: 'https://api.bemfa.com/api/device/v1/status/',  //get 设备状态接口，详见巴法云接入文档
+        data: {
+          uid: that.data.uid,
+          topic: that.data.topic,
+        },
+        header: {
+          'content-type': "application/x-www-form-urlencoded"
+        },
+        success (res) {
+          console.log(res.data)
+          if(res.data.status === "online"){
+            that.setData({
+              device_status:"在线",
+              connect_text: "连接服务器成功",
+              iot_connect: true,
+            })
+          }else{
+            that.setData({
+              device_status:"离线",
+              connect_text: "设备掉线",
+              iot_connect: false,
+            })
+          }
+          console.log(that.data.device_status)
+        }
+      })
+
+      //请求询问设备开关/状态
+      wx.request({
+        url: 'https://api.bemfa.com/api/device/v1/data/1/', //get接口，详见巴法云接入文档
+        data: {
+          uid: that.data.uid,
+          topic: that.data.topic,
+        },
+        header: {
+          'content-type': "application/x-www-form-urlencoded"
+        },
+        success (res) {
+          console.log(res.data)
+          if(res.data.msg === "on"){
+            that.setData({
+              powerstatus:"状态：打开"
+            })
+          }
+          if(res.data.msg === "on"){
+            that.setData({
+              powerstatus:"状态：关闭"
+            })
+          }
+          console.log(that.data.powerstatus)
+        }
+      })
+
+    }, 10000)
   },
 
   /*

@@ -9,5 +9,7 @@
         <!-- 通过链接的方式使用 CSS -->
         <script src="index.js" charset="utf-8"></script>
 </head>
-<button type="defaule" bindtap="checkIsFingerPrint">检测能否指纹识别</button>
+
 <button type="defaule" bindtap="FingerPrint">指纹识别认证</button>
+<button type="defaule" bindtap="Facial">人脸识别认证</button>
+<button type="defaule" bindtap="ceshi">手动密码进入</button>
