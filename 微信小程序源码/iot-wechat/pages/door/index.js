@@ -22,6 +22,7 @@ Page({
     key:"20220311",
     login: false,
     login2: false,
+    ifban: false,
     button_clicking: false,
     iot_connect: false,
     connect_text: "未连接",
@@ -85,17 +86,64 @@ Page({
           hasUserInfo: true,
           login2:true
         })
+        console.log(res.userInfo)
+        //开始判断时间差，并决定是否封禁
+        //先判断是否开着
         wx.request({
-          url: 'https://api.bemfa.com/api/device/v1/data/1/', //api接口，详见接入文档
-          method:"POST",
+          url: 'https://api.bemfa.com/api/device/v1/data/1/', //get接口，详见巴法云接入文档
           data: {
             uid: that.data.uid,
-            topic: "status",
-            msg:that.data.userInfo.nickName
+            topic: that.data.topic,
           },
           header: {
             'content-type': "application/x-www-form-urlencoded"
-          }})
+          },
+          success (res) {
+            console.log(res.data)
+            if(res.data.msg === "on"){//开着
+              //开始判断是否是这个用户
+                wx.request({
+                  url: 'https://api.bemfa.com/api/device/v1/data/1/', //get接口，详见巴法云接入文档
+                  data: {
+                    uid: that.data.uid,
+                    topic: "status",
+                  },
+                  header: {
+                    'content-type': "application/x-www-form-urlencoded"
+                  },
+                  success (res) {
+                    console.log(res.data)
+                    if(res.data.msg == that.data.userInfo.nickName){//是这个用户
+                      //开始判断是否大于12h小于29h
+                      console.log(Date.parse(new Date())-Date.parse(res.data.time))
+                      //if(Date.parse(new Date())-Date.parse(res.data.time)>=43200000 && Date.parse(new Date())-Date.parse(res.data.time)<=104400000)
+                      if(Date.parse(new Date())-Date.parse(res.data.time)>=60000 && Date.parse(new Date())-Date.parse(res.data.time)<=120000 )
+                      {
+                        that.setData({
+                        ifban:true,
+                        bantime: res.data.time,
+                      })
+                      }
+                    }
+                    else{
+                      that.setData({
+                        ifban: false,
+                      })
+                    }
+                    console.log(that.data.powerstatus)
+                  }
+                })
+                    
+                  }
+            else if(res.data.msg == "off"){
+              that.setData({
+                ifban: false
+              })
+            }
+          }
+        })
+        console.log(that.data.ifban)
+        
         that.load()
       }
     })
@@ -119,6 +167,18 @@ Page({
       time: time,
       do: '开',
     });
+      //发送记录
+      wx.request({
+        url: 'https://api.bemfa.com/api/device/v1/data/1/', //api接口，详见接入文档
+        method:"POST",
+        data: {
+          uid: that.data.uid,
+          topic: "status",
+          msg:that.data.userInfo.nickName
+        },
+        header: {
+          'content-type': "application/x-www-form-urlencoded"
+        }})
          //控制接口
          wx.request({
           url: 'https://api.bemfa.com/api/device/v1/data/1/', //api接口，详见接入文档
@@ -132,7 +192,6 @@ Page({
             'content-type': "application/x-www-form-urlencoded"
           },
           success (res) {
-            console.log(res.data)
             wx.showToast({
               title:'已发送打开信号',
               icon:'success',
@@ -169,7 +228,6 @@ Page({
             'content-type': "application/x-www-form-urlencoded"
           },
           success (res) {
-            console.log(res.data)
             wx.showToast({
               title:'已发送关闭信号',
               icon:'success',
@@ -209,7 +267,6 @@ Page({
         'content-type': "application/x-www-form-urlencoded"
       },
       success (res) {
-        console.log(res.data)
         if(res.data.status === "online"){
           that.setData({
             device_status:"在线",
@@ -223,7 +280,6 @@ Page({
             iot_connect: false
           })
         }
-        console.log(that.data.device_status)
       }
     })
 
@@ -238,7 +294,6 @@ Page({
               'content-type': "application/x-www-form-urlencoded"
             },
             success (res) {
-              console.log(res.data)
               if(res.data.msg === "on"){
                 that.setData({
                   powerstatus:"状态：打开"
@@ -249,7 +304,6 @@ Page({
                   powerstatus:"状态：关闭"
                 })
               }
-              console.log(that.data.powerstatus)
             }
           })
 
@@ -267,7 +321,6 @@ Page({
           'content-type': "application/x-www-form-urlencoded"
         },
         success (res) {
-          console.log(res.data)
           if(res.data.status === "online"){
             that.setData({
               device_status:"在线",
@@ -281,7 +334,6 @@ Page({
               iot_connect: false,
             })
           }
-          console.log(that.data.device_status)
         }
       })
 
@@ -296,7 +348,6 @@ Page({
           'content-type': "application/x-www-form-urlencoded"
         },
         success (res) {
-          console.log(res.data)
           if(res.data.msg === "on"){
             that.setData({
               powerstatus:"状态：打开"
@@ -307,7 +358,6 @@ Page({
               powerstatus:"状态：关闭"
             })
           }
-          console.log(that.data.powerstatus)
         }
       })
 
