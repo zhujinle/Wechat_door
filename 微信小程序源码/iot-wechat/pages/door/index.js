@@ -27,7 +27,7 @@ Page({
     iot_connect: false,
     connect_text: "未连接",
     nickName:"",
-    powerstatus:"测试"
+    powerstatus:"未知"
   },
 
   inputPwd:function(e){
@@ -116,8 +116,8 @@ Page({
                     if(res.data.msg == that.data.userInfo.nickName){//是这个用户
                       //开始判断是否大于12h小于29h
                       console.log(Date.parse(new Date())-Date.parse(res.data.time))
-                      //if(Date.parse(new Date())-Date.parse(res.data.time)>=43200000 && Date.parse(new Date())-Date.parse(res.data.time)<=104400000)
-                      if(Date.parse(new Date())-Date.parse(res.data.time)>=60000 && Date.parse(new Date())-Date.parse(res.data.time)<=120000 )
+                      if(Date.parse(new Date())-Date.parse(res.data.time)>=43200000 && Date.parse(new Date())-Date.parse(res.data.time)<=104400000)//12h到29h
+                      //if(Date.parse(new Date())-Date.parse(res.data.time)>=60000 && Date.parse(new Date())-Date.parse(res.data.time)<=120000 )//1min到2min，测试用
                       {
                         that.setData({
                         ifban:true,
@@ -142,8 +142,29 @@ Page({
             }
           }
         })
-        console.log(that.data.ifban)
-        
+        //请求询问设备开关/状态
+        wx.request({
+          url: 'https://api.bemfa.com/api/device/v1/data/1/', //get接口，详见巴法云接入文档
+          data: {
+            uid: that.data.uid,
+            topic: that.data.topic,
+          },
+          header: {
+            'content-type': "application/x-www-form-urlencoded"
+          },
+          success (res) {
+            if(res.data.msg === "on"){
+              that.setData({
+                powerstatus:"状态：打开"
+              })
+            }
+            if(res.data.msg === "off"){
+              that.setData({
+                powerstatus:"状态：关闭"
+              })
+            }
+          }
+        })
         that.load()
       }
     })
