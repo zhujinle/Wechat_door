@@ -119,6 +119,12 @@ Page({
                       if(Date.parse(new Date())-Date.parse(res.data.time)>=43200000 && Date.parse(new Date())-Date.parse(res.data.time)<=104400000)//12h到29h
                       //if(Date.parse(new Date())-Date.parse(res.data.time)>=60000 && Date.parse(new Date())-Date.parse(res.data.time)<=120000 )//1min到2min，测试用
                       {
+                        //ban的时间存入本地存储
+                        wx.setStorage({
+                          key: "bantime",
+                          data: res.data.time,
+                        })
+                        //设置已经被ban
                         that.setData({
                         ifban:true,
                         bantime: res.data.time,
@@ -129,6 +135,21 @@ Page({
                       that.setData({
                         ifban: false,
                       })
+                      wx.getStorage({
+                        key: 'bantime',
+                        success(res) {
+                          var bantime1 = res.data
+                          if(Date.parse(new Date())-Date.parse(bantime1)>=43200000 && Date.parse(new Date())-Date.parse(bantime1)<=104400000)//12h到29h
+                              //if(Date.parse(new Date())-Date.parse(bantime1)>=60000 && Date.parse(new Date())-Date.parse(bantime1)<=120000 )//1min到2min，测试用
+                              {
+                                //设置已经被ban
+                                that.setData({
+                                ifban:true,
+                                bantime: bantime1,
+                              })
+                              }
+                        }
+                      })
                     }
                     console.log(that.data.powerstatus)
                   }
@@ -138,6 +159,21 @@ Page({
             else if(res.data.msg == "off"){
               that.setData({
                 ifban: false
+              })
+              wx.getStorage({
+                key: 'bantime',
+                success(res) {
+                  var bantime1 = res.data
+                  if(Date.parse(new Date())-Date.parse(bantime1)>=43200000 && Date.parse(new Date())-Date.parse(bantime1)<=104400000)//12h到29h
+                      //if(Date.parse(new Date())-Date.parse(bantime1)>=60000 && Date.parse(new Date())-Date.parse(bantime1)<=120000 )//1min到2min，测试用
+                      {
+                        //设置已经被ban
+                        that.setData({
+                        ifban:true,
+                        bantime: bantime1,
+                      })
+                      }
+                }
               })
             }
           }
