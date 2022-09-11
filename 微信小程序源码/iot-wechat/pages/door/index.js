@@ -23,6 +23,8 @@ Page({
     login: false,
     login2: false,
     ifban: false,
+    ifzaojiuban: false,
+    ifshoudongban: false,
     button_clicking: false,
     iot_connect: false,
     connect_text: "未连接",
@@ -117,7 +119,7 @@ Page({
                       //开始判断是否大于12h小于29h
                       console.log(Date.parse(new Date())-Date.parse(res.data.time))
                       if(Date.parse(new Date())-Date.parse(res.data.time)>=43200000 && Date.parse(new Date())-Date.parse(res.data.time)<=104400000)//12h到29h
-                      //if(Date.parse(new Date())-Date.parse(res.data.time)>=60000 && Date.parse(new Date())-Date.parse(res.data.time)<=120000 )//1min到2min，测试用
+                      //if(Date.parse(new Date())-Date.parse(res.data.time)>=6000 && Date.parse(new Date())-Date.parse(res.data.time)<=120000 )//6s到2min，测试用
                       {
                         //ban的时间存入本地存储
                         wx.setStorage({
@@ -135,21 +137,6 @@ Page({
                       that.setData({
                         ifban: false,
                       })
-                      wx.getStorage({
-                        key: 'bantime',
-                        success(res) {
-                          var bantime1 = res.data
-                          if(Date.parse(new Date())-Date.parse(bantime1)>=43200000 && Date.parse(new Date())-Date.parse(bantime1)<=104400000)//12h到29h
-                              //if(Date.parse(new Date())-Date.parse(bantime1)>=60000 && Date.parse(new Date())-Date.parse(bantime1)<=120000 )//1min到2min，测试用
-                              {
-                                //设置已经被ban
-                                that.setData({
-                                ifban:true,
-                                bantime: bantime1,
-                              })
-                              }
-                        }
-                      })
                     }
                     console.log(that.data.powerstatus)
                   }
@@ -157,25 +144,58 @@ Page({
                     
                   }
             else if(res.data.msg == "off"){
+              console.log("1")
               that.setData({
+                
                 ifban: false
               })
-              wx.getStorage({
-                key: 'bantime',
-                success(res) {
-                  var bantime1 = res.data
-                  if(Date.parse(new Date())-Date.parse(bantime1)>=43200000 && Date.parse(new Date())-Date.parse(bantime1)<=104400000)//12h到29h
-                      //if(Date.parse(new Date())-Date.parse(bantime1)>=60000 && Date.parse(new Date())-Date.parse(bantime1)<=120000 )//1min到2min，测试用
-                      {
-                        //设置已经被ban
-                        that.setData({
-                        ifban:true,
-                        bantime: bantime1,
-                      })
-                      }
-                }
-              })
+              
             }
+          }
+        })
+        //看看是不是在之前ban的
+        wx.getStorage({
+          key: 'bantime',
+          success(res) {
+            var bantime1 = res.data
+            if(Date.parse(new Date())-Date.parse(bantime1)>=43200000 && Date.parse(new Date())-Date.parse(bantime1)<=104400000)//12h到29h
+                //if(Date.parse(new Date())-Date.parse(bantime1)>=6000 && Date.parse(new Date())-Date.parse(bantime1)<=120000 )//6s到2min，测试用
+                {
+                  console.log("beiban")
+                  //设置已经被ban
+                  that.setData({
+                  ifzaojiuban:true,
+                  bantime: bantime1,
+                })
+                }
+          }
+        })
+        //看看是不是手动ban的
+
+                wx.request({
+                  url: 'https://api.bemfa.com/api/device/v1/data/1/', //get接口，详见巴法云接入文档
+                  data: {
+                    uid: that.data.uid,
+                    topic: "banned",
+                  },
+                  header: {
+                    'content-type': "application/x-www-form-urlencoded"
+                  },
+                  success (res) {
+                    console.log(res.data)
+                    if(res.data.msg == that.data.userInfo.nickName)//是他
+                    {
+                        if(Date.parse(new Date())-Date.parse(res.data.time)<=61200000 )//0h到17h
+                        //if(Date.parse(new Date())-Date.parse(bantime1)>=6000 && Date.parse(new Date())-Date.parse(bantime1)<=120000 )//6s到2min，测试用
+                        {
+                              console.log("手动封禁")
+                              //设置已经被ban
+                              that.setData({
+                              ifshoudongban:true,
+                              bantime: res.data.time,
+                            })
+                        }
+                    }
           }
         })
         //请求询问设备开关/状态

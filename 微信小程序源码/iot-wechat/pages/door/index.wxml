@@ -15,7 +15,18 @@
   <view>上次开闸时间：{{ bantime }}</view>
 </view>
 
-<view hidden='{{ !login2 || !login || ifban }}'>
+<view class='login_block' hidden='{{ !login2 || !login || ifban || !ifzaojiuban}}'>
+  <view>已被封禁<input type='text' placeholder="12小时未关水. 封禁29小时" ></input></view>
+  <view><input type='text' placeholder="从上次开闸时间开始计算" ></input></view>
+  <view>上次开闸时间：{{ bantime }}</view>
+</view>
+
+<view class='login_block' hidden='{{ !login2 || !login || ifban || ifzaojiuban || !ifshoudongban}}'>
+  <view>已被封禁<input type='text' placeholder="12小时未关水. 封禁17小时" ></input></view>
+  <view><input type='text' placeholder="因记录被覆盖，从系统记录时间开始计算" ></input></view>
+</view>
+
+<view hidden='{{ !login2 || !login || ifban || ifzaojiuban || ifshoudongban}}'>
     <view class="flex-wrp" style="flex-direction:column;">
       <view class='button' bindtap='command_open' hover-class='button_hover' hover-stay-time='2000' style="position: absolute; left: 17rpx; top: 536rpx">
         <image src='{{ img_url }}' mode='scaleToFill' class='button_img'></image>
