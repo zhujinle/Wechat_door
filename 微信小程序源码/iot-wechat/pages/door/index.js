@@ -15,11 +15,11 @@ const app = getApp()
 
 Page({
   data: {
-    uid: '400d9c25791748d39b73e0085299921b',
-    topic: "washing006",
+    uid: '你的uid',
+    topic: "你的主题编号",
     img_url: "/img/door_a.png",
     password_input:"",
-    key:"20220311",
+    key:"123456",
     login: false,
     login2: false,
     ifban: false,
